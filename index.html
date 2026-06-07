@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Rakib IPTV</title>
+<title>Shoreful IPTV</title>
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
@@ -186,39 +186,6 @@ box-shadow:
 
 }
 
-/* LIVE COUNTER */
-
-.live-counter{
-
-position:fixed;
-
-left:15px;
-bottom:60px;
-
-z-index:99999;
-
-background:rgba(0,0,0,.80);
-
-padding:12px 16px;
-
-border-radius:18px;
-
-font-size:13px;
-font-weight:bold;
-
-color:white;
-
-backdrop-filter:blur(10px);
-
-box-shadow:
-0 0 14px rgba(0,255,100,.5);
-
-opacity:1;
-
-transition:.4s;
-
-}
-
 /* CONTACT */
 
 .contact-title{
@@ -383,21 +350,7 @@ filter:brightness(.75) contrast(.95);
 
 <div class="header">
 
-<div style="display:flex;justify-content:center;align-items:center;gap:12px;"><h1>Rakib IPTV</h1><button id="themeToggle" title="Dark Mode">🌙</button></div>
-
-</div>
-
-<!-- LIVE COUNTER -->
-
-<div class="live-counter">
-
-🟢 Live Users :
-<span id="liveUsers">0</span>
-
-<br>
-
-👁 Total Views :
-<span id="totalViews">0</span>
+<div style="display:flex;justify-content:center;align-items:center;gap:12px;"><h1>Shoreful IPTV</h1><button id="themeToggle" title="Dark Mode">🌙</button></div>
 
 </div>
 
@@ -474,7 +427,7 @@ id="channelGrid">
 
 <div class="social-box">
 
-<a href="https://t.me/rprakib49"
+<a href="https://t.me/shoreful"
 target="_blank"
 class="telegram">
 
@@ -482,7 +435,7 @@ class="telegram">
 
 </a>
 
-<a href="https://www.facebook.com/rprakib49"
+<a href="https://www.facebook.com/shoreful"
 target="_blank"
 class="facebook">
 
@@ -496,7 +449,7 @@ class="facebook">
 
 <div class="footer">
 
-© 2026 <span>RAKIB IPTV</span>
+© 2026 <span>SHOREFUL IPTV</span>
 
 </div>
 
@@ -831,18 +784,13 @@ cards[index]
 const controls =
 document.querySelector('.custom-controls');
 
-const visitor =
-document.querySelector('.live-counter');
-
 function showUI(){
 
 controls.style.opacity='1';
-visitor.style.opacity='1';
 
 setTimeout(()=>{
 
 controls.style.opacity='0';
-visitor.style.opacity='0';
 
 },2000);
 
@@ -854,125 +802,6 @@ document.querySelector('.player-box')
 .addEventListener('click',()=>{
 
 showUI();
-
-});
-
-</script>
-
-<!-- FIREBASE -->
-
-<script type="module">
-
-import { initializeApp }
-from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-
-import {
-
-getDatabase,
-ref,
-set,
-get,
-onValue,
-onDisconnect,
-runTransaction
-
-}
-
-from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
-
-const firebaseConfig = {
-
-apiKey:
-"AIzaSyA2L1dayNYWlDz6dKc3a_N0eoyDaLSlPj0",
-
-authDomain:
-"rakib-iptv.firebaseapp.com",
-
-databaseURL:
-"https://rakib-iptv-default-rtdb.asia-southeast1.firebasedatabase.app",
-
-projectId:
-"rakib-iptv",
-
-storageBucket:
-"rakib-iptv.firebasestorage.app",
-
-messagingSenderId:
-"299021620847",
-
-appId:
-"1:299021620847:web:20e1cd003d9c6ced815f9a"
-
-};
-
-const app =
-initializeApp(firebaseConfig);
-
-const db =
-getDatabase(app);
-
-/* UNIQUE USER */
-
-const userId =
-Date.now() + "_" +
-Math.random().toString(36).substring(2,8);
-
-const userRef =
-ref(db,'liveUsers/'+userId);
-
-/* USER ONLINE */
-
-set(userRef,{
-online:true,
-time:Date.now()
-});
-
-/* AUTO REMOVE */
-
-onDisconnect(userRef).remove();
-
-/* LIVE USERS */
-
-onValue(ref(db,'liveUsers'),
-(snapshot)=>{
-
-const data =
-snapshot.val();
-
-const count =
-data ? Object.keys(data).length : 0;
-
-document.getElementById('liveUsers')
-.innerText = count;
-
-});
-
-/* TOTAL VIEWS */
-
-const totalRef =
-ref(db,'totalViews');
-
-/* COUNT VIEW - TRANSACTION */
-
-if(!localStorage.getItem('viewed')){
-
-runTransaction(totalRef,(current)=>{
-return (current || 0) + 1;
-}).then(()=>{
-localStorage.setItem('viewed','yes');
-});
-
-}
-
-/* SHOW TOTAL */
-
-onValue(totalRef,(snapshot)=>{
-
-const total =
-snapshot.val() || 0;
-
-document.getElementById('totalViews')
-.innerText = total;
 
 });
 

@@ -198,6 +198,9 @@ body.lightmode .skeleton {
     box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--border-color);
     margin-bottom: 30px; aspect-ratio: 16/9; max-height: 65vh;
 }
+.player-wrapper:fullscreen { max-height: none; border-radius: 0; border: none; }
+.player-wrapper:-webkit-full-screen { max-height: none; border-radius: 0; border: none; }
+
 video { width: 100%; height: 100%; object-fit: contain; background: #000; display: none; }
 
 /* MINIMAL BUFFERING SPINNER WITH TEXT */
@@ -223,7 +226,7 @@ video { width: 100%; height: 100%; object-fit: contain; background: #000; displa
 }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* CUSTOM CONTROLS */
+/* CUSTOM CONTROLS & FULLSCREEN BTN */
 .player-controls-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background: radial-gradient(circle, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%);
@@ -232,6 +235,7 @@ video { width: 100%; height: 100%; object-fit: contain; background: #000; displa
 }
 .player-wrapper:hover .player-controls-overlay,
 .player-wrapper.active-ui .player-controls-overlay { opacity: 1; pointer-events: auto; }
+
 .play-btn-custom {
     width: 70px; height: 70px; background: rgba(229, 9, 20, 0.9); border-radius: 50%;
     display: flex; justify-content: center; align-items: center; font-size: 24px; color: white;
@@ -243,6 +247,37 @@ video { width: 100%; height: 100%; object-fit: contain; background: #000; displa
     cursor: pointer; border: 1px solid rgba(255,255,255,0.2); transition: 0.2s;
 }
 .play-btn-custom:hover, .nav-btn-custom:hover { transform: scale(1.1); background: var(--primary); border-color: var(--primary); }
+
+.fullscreen-btn {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 1001;
+    opacity: 0;
+    transition: 0.3s ease;
+    pointer-events: none;
+    backdrop-filter: blur(4px);
+}
+.player-wrapper:hover .fullscreen-btn,
+.player-wrapper.active-ui .fullscreen-btn {
+    opacity: 1; pointer-events: auto;
+}
+.fullscreen-btn:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    transform: scale(1.1);
+}
 
 /* CHANNEL GRID */
 .section-header { font-size: 20px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
@@ -341,7 +376,8 @@ body.lightmode .loading-text-minimal { color: #111; text-shadow: none; }
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-title">Categories</div>
         <div id="groupTabs">
-            </div>
+            <!-- Skeleton Tabs -->
+        </div>
     </aside>
 
     <main class="main-content">
@@ -363,6 +399,11 @@ body.lightmode .loading-text-minimal { color: #111; text-shadow: none; }
                 </div>
             </div>
 
+            <!-- Fullscreen Button inside Wrapper -->
+            <button class="fullscreen-btn" id="fsBtn" onclick="toggleFullScreen()" title="Full Screen">
+                <i class="fas fa-expand"></i>
+            </button>
+
             <div class="player-controls-overlay" id="customControls">
                 <button class="nav-btn-custom" onclick="prevChannel()"><i class="fas fa-backward-step"></i></button>
                 <button class="play-btn-custom" onclick="togglePlay()" id="playPauseBtn"><i class="fas fa-pause"></i></button>
@@ -372,7 +413,8 @@ body.lightmode .loading-text-minimal { color: #111; text-shadow: none; }
 
         <h2 class="section-header" id="currentCategoryTitle">All Channels</h2>
         <div class="channel-grid fade-in" id="channelGrid">
-            </div>
+            <!-- Skeleton Grid -->
+        </div>
 
         <div class="bottom-section">
             <h3>Connect With Us</h3>
@@ -421,6 +463,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadPlaylist();
     setupPlayerUI();
     setupVideoEvents();
+    setupFullScreenListener();
 });
 
 /* SHOW SKELETONS */
@@ -497,7 +540,6 @@ function loadPlaylist() {
             }
         }
 
-        // Hide Skeleton, Show Video with fade in
         document.getElementById('playerSkeleton').style.display = 'none';
         const videoElement = document.getElementById('video');
         videoElement.style.display = 'block';
@@ -554,7 +596,7 @@ function filterGroup(group, btnElement){
     
     const grid = document.getElementById('channelGrid');
     grid.classList.remove('fade-in');
-    void grid.offsetWidth; // trigger reflow
+    void grid.offsetWidth;
     grid.classList.add('fade-in');
     
     renderChannels();
@@ -641,7 +683,6 @@ function playChannel(index, scrollToTop = false){
     const loadingText = document.getElementById('loadingText');
     const spinnerIcon = document.getElementById('spinnerIcon');
 
-    // On Click Show Buffer
     loadingText.innerText = 'সার্ভারের সাথে কানেক্ট হচ্ছে...';
     spinnerIcon.style.display = 'block';
     overlay.classList.add('active');
@@ -693,6 +734,46 @@ function setupPlayerUI() {
     wrapper.addEventListener('mousemove', showControls); wrapper.addEventListener('click', showControls);
     wrapper.addEventListener('touchstart', showControls); video.addEventListener('pause', () => wrapper.classList.add('active-ui'));
     video.addEventListener('play', showControls);
+}
+
+/* FULLSCREEN LOGIC */
+function toggleFullScreen() {
+    const player = document.getElementById('playerContainer');
+    const video = document.getElementById('video');
+
+    if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+        if (player.requestFullscreen) {
+            player.requestFullscreen();
+        } else if (player.webkitRequestFullscreen) { /* Safari */
+            player.webkitRequestFullscreen();
+        } else if (video.webkitEnterFullscreen) { /* Fallback for iOS */
+            video.webkitEnterFullscreen();
+        } else if (player.msRequestFullscreen) { /* IE11 */
+            player.msRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) { /* Safari */
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { /* IE11 */
+            document.msExitFullscreen();
+        }
+    }
+}
+
+function setupFullScreenListener() {
+    const events = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'];
+    events.forEach(evt => document.addEventListener(evt, updateFsIcon));
+}
+
+function updateFsIcon() {
+    const fsBtn = document.getElementById('fsBtn');
+    if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+        fsBtn.innerHTML = '<i class="fas fa-compress"></i>';
+    } else {
+        fsBtn.innerHTML = '<i class="fas fa-expand"></i>';
+    }
 }
 
 function initTheme() {

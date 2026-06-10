@@ -315,7 +315,7 @@ video { width: 100%; height: 100%; object-fit: contain; background: #000; displa
 .footer-text { margin-top: 20px; font-size: 13px; color: var(--text-muted); }
 .footer-text span { color: var(--primary); font-weight: bold; }
 
-/* REAL VISITOR & NETWORK INFO BOX (Soto Kore) */
+/* REAL VISITOR & NETWORK INFO BOX */
 .live-network-box {
     margin-top: 20px;
     padding-top: 15px;
@@ -499,21 +499,38 @@ document.addEventListener("DOMContentLoaded", () => {
     setupPlayerUI();
     setupVideoEvents();
     setupFullScreenListener();
-    loadLiveStats(); // Fetch Real Tracker Info
+    loadLiveStats(); 
 });
 
-/* FETCH VISITOR, IP & ISP DATA */
+/* FETCH VISITOR, IP & ISP DATA WITH FALLBACK PROTECTION */
 function loadLiveStats() {
-    // Real Visitor Counter API (Securely tracks global hits for your unique namespace)
+    // Visitor Counter
     fetch('https://api.counterapi.dev/v1/shoreful_iptv_premium/visits/increment')
     .then(res => res.json())
     .then(data => {
         if(data && data.value) document.getElementById('visitorCount').innerText = data.value;
         else document.getElementById('visitorCount').innerText = '১+';
     })
-    .catch(() => document.getElementById('visitorCount').innerText = 'সরাসরি উপলব্ধ নয়');
+    .catch(() => document.getElementById('visitorCount').innerText = '১+');
 
-    // Real IP & ISP Fetch API
+    // PRIMARY API: ipapi.co (Highly stable over HTTPS and works well globally)
+    fetch('https://ipapi.co/json/')
+    .then(res => res.json())
+    .then(data => {
+        if(data && data.ip) {
+            document.getElementById('userIP').innerText = data.ip;
+            document.getElementById('userISP').innerText = data.org || data.asn || 'Unknown';
+        } else {
+            runFallbackIP(); // Trigger backup if primary fails
+        }
+    })
+    .catch(() => {
+        runFallbackIP(); // Trigger backup on error
+    });
+}
+
+/* BACKUP IP/ISP FETCH SYSTEM */
+function runFallbackIP() {
     fetch('https://ipwho.is/')
     .then(res => res.json())
     .then(data => {

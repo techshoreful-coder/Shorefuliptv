@@ -78,7 +78,7 @@ body.lightmode .skeleton {
     animation: skeleton-light 1.5s infinite ease-in-out;
 }
 
-/* Skeleton Styles for specific parts */
+/* Skeleton Styles */
 .skeleton-tab {
     width: 100%;
     height: 45px;
@@ -190,20 +190,26 @@ body.lightmode .skeleton {
 }
 video { width: 100%; height: 100%; object-fit: contain; background: #000; display: none; }
 
-/* MINIMAL BUFFERING SPINNER */
+/* MINIMAL BUFFERING SPINNER WITH TEXT */
 .minimal-buffering {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
     display: flex; justify-content: center; align-items: center;
     z-index: 1000; opacity: 0; pointer-events: none; transition: 0.3s ease;
 }
 .minimal-buffering.active { opacity: 1; pointer-events: auto; }
+.loading-content-wrapper {
+    display: flex; flex-direction: column; align-items: center; gap: 15px;
+}
 .spinner-ring {
-    width: 45px; height: 45px;
-    border: 4px solid rgba(255, 255, 255, 0.1);
-    border-top: 4px solid var(--primary);
+    width: 40px; height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top: 3px solid var(--primary);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
+}
+.loading-text-minimal {
+    color: #fff; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; text-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -274,7 +280,8 @@ body.lightmode .card-title { color: #333; }
 body.lightmode .navbar { background: rgba(255,255,255,0.95); }
 body.lightmode .player-wrapper { box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
 body.lightmode .mobile-menu-btn { color: #111; }
-body.lightmode .minimal-buffering { background: rgba(255, 255, 255, 0.7); }
+body.lightmode .minimal-buffering { background: rgba(255, 255, 255, 0.8); }
+body.lightmode .loading-text-minimal { color: #111; text-shadow: none; }
 
 /* RESPONSIVE */
 @media (max-width: 992px) {
@@ -301,6 +308,7 @@ body.lightmode .minimal-buffering { background: rgba(255, 255, 255, 0.7); }
 </head>
 <body>
 
+<!-- NAVBAR -->
 <header class="navbar">
     <div class="brand">
         <button id="mobileMenuBtn" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
@@ -321,12 +329,15 @@ body.lightmode .minimal-buffering { background: rgba(255, 255, 255, 0.7); }
 <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMenu()"></div>
 
 <div class="layout">
+    <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-title">Categories</div>
         <div id="groupTabs">
-            </div>
+            <!-- Tabs Skeleton Injected via JS -->
+        </div>
     </aside>
 
+    <!-- MAIN CONTENT -->
     <main class="main-content">
         
         <div class="mobile-search">
@@ -334,13 +345,19 @@ body.lightmode .minimal-buffering { background: rgba(255, 255, 255, 0.7); }
             <input type="text" id="mobileSearch" placeholder="Search channels..." onkeyup="searchChannels(this.value)">
         </div>
 
+        <!-- VIDEO PLAYER -->
         <div class="player-wrapper" id="playerContainer">
+            <!-- Player Skeleton for Initial Load -->
             <div class="skeleton skeleton-player" id="playerSkeleton"></div>
             
             <video id="video" autoplay playsinline controls></video>
             
+            <!-- MINIMAL BUFFERING SPINNER WITH TEXT -->
             <div class="minimal-buffering" id="loadingOverlay">
-                <div class="spinner-ring"></div>
+                <div class="loading-content-wrapper">
+                    <div class="spinner-ring" id="spinnerIcon"></div>
+                    <div class="loading-text-minimal bengali-text" id="loadingText">সার্ভারের সাথে কানেক্ট হচ্ছে...</div>
+                </div>
             </div>
 
             <div class="player-controls-overlay" id="customControls">
@@ -350,10 +367,13 @@ body.lightmode .minimal-buffering { background: rgba(255, 255, 255, 0.7); }
             </div>
         </div>
 
+        <!-- CHANNEL GRID -->
         <h2 class="section-header" id="currentCategoryTitle">All Channels</h2>
         <div class="channel-grid" id="channelGrid">
-            </div>
+            <!-- Grid Skeletons Injected via JS -->
+        </div>
 
+        <!-- BOTTOM SECTION -->
         <div class="bottom-section">
             <h3>Connect With Us</h3>
             <p class="bengali-text" style="font-size: 14px; color: var(--text-muted); margin-top: 5px;">আমার টিভি সম্পর্কে মতামত জানাতে</p>
@@ -433,11 +453,23 @@ function showSkeletons() {
 function setupVideoEvents() {
     const video = document.getElementById('video');
     const overlay = document.getElementById('loadingOverlay');
+    const loadingText = document.getElementById('loadingText');
+    const spinnerIcon = document.getElementById('spinnerIcon');
 
-    video.addEventListener('playing', () => overlay.classList.remove('active'));
-    video.addEventListener('waiting', () => overlay.classList.add('active'));
+    video.addEventListener('playing', () => {
+        overlay.classList.remove('active');
+    });
+    
+    video.addEventListener('waiting', () => {
+        loadingText.innerText = 'সার্ভারের সাথে কানেক্ট হচ্ছে...';
+        spinnerIcon.style.display = 'block';
+        overlay.classList.add('active');
+    });
+    
     video.addEventListener('error', () => {
-        setTimeout(() => overlay.classList.remove('active'), 2000);
+        loadingText.innerText = 'ভিডিও লোড হতে সমস্যা হচ্ছে';
+        spinnerIcon.style.display = 'none';
+        setTimeout(() => overlay.classList.remove('active'), 2500);
     });
 }
 
@@ -597,8 +629,14 @@ function playChannel(index, scrollToTop = false){
 
     const video = document.getElementById('video');
     const channel = channels[index];
+    
     const overlay = document.getElementById('loadingOverlay');
+    const loadingText = document.getElementById('loadingText');
+    const spinnerIcon = document.getElementById('spinnerIcon');
 
+    // On Click Show Buffer
+    loadingText.innerText = 'সার্ভারের সাথে কানেক্ট হচ্ছে...';
+    spinnerIcon.style.display = 'block';
     overlay.classList.add('active');
 
     if(Hls.isSupported()){
@@ -610,7 +648,11 @@ function playChannel(index, scrollToTop = false){
             updatePlayPauseIcon();
         });
         hls.on(Hls.Events.ERROR, function (event, data) {
-            if (data.fatal) setTimeout(() => overlay.classList.remove('active'), 2000);
+            if (data.fatal) {
+                loadingText.innerText = 'ভিডিও লোড হতে সমস্যা হচ্ছে';
+                spinnerIcon.style.display = 'none';
+                setTimeout(() => overlay.classList.remove('active'), 2500);
+            }
         });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = channel.url;

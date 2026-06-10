@@ -267,6 +267,65 @@ video {
     background: #000;
 }
 
+/* BUFFERING / LOADING OVERLAY */
+.tv-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+.tv-loading-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+.tv-loading-content {
+    text-align: center;
+}
+.tv-icon-pulse {
+    font-size: 60px;
+    color: var(--primary);
+    margin-bottom: 15px;
+    animation: pulse 1.5s infinite ease-in-out;
+    filter: drop-shadow(0 0 15px var(--active-glow));
+}
+.loading-text {
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+}
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top: 3px solid var(--primary);
+    border-radius: 50%;
+    margin: 0 auto;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* CUSTOM CONTROLS */
 .player-controls-overlay {
     position: absolute;
     top: 0;
@@ -281,6 +340,7 @@ video {
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
+    z-index: 999; /* Below loading overlay */
 }
 
 .player-wrapper:hover .player-controls-overlay,
@@ -505,6 +565,12 @@ body.lightmode .player-wrapper {
 body.lightmode .mobile-menu-btn {
     color: #111;
 }
+body.lightmode .tv-loading-overlay {
+    background: rgba(255, 255, 255, 0.85);
+}
+body.lightmode .loading-text {
+    color: #111;
+}
 
 /* RESPONSIVE DESIGN (MOBILE & TABLET) */
 @media (max-width: 992px) {
@@ -604,12 +670,11 @@ body.lightmode .mobile-menu-btn {
 </head>
 <body>
 
-<!-- NAVBAR -->
 <header class="navbar">
     <div class="brand">
         <button id="mobileMenuBtn" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
         <i class="fas fa-play-circle logo-icon"></i>
-        <span>Shoreful IPTV</span>
+        <span>Shoreful</span>
     </div>
     
     <div class="search-container">
@@ -622,31 +687,33 @@ body.lightmode .mobile-menu-btn {
     </div>
 </header>
 
-<!-- Mobile Overlay -->
 <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMenu()"></div>
 
 <div class="layout">
-    <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-title">Categories</div>
         <div id="groupTabs">
-            <!-- Tabs injected via JS -->
-        </div>
+            </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <main class="main-content">
         
-        <!-- Mobile Search (Hidden on Desktop) -->
         <div class="mobile-search">
             <i class="fas fa-search"></i>
             <input type="text" id="mobileSearch" placeholder="Search channels..." onkeyup="searchChannels(this.value)">
         </div>
 
-        <!-- VIDEO PLAYER -->
         <div class="player-wrapper" id="playerContainer">
             <video id="video" autoplay playsinline controls></video>
             
+            <div class="tv-loading-overlay" id="loadingOverlay">
+                <div class="tv-loading-content">
+                    <i class="fas fa-tv tv-icon-pulse"></i>
+                    <div class="loading-text" id="loadingText">সার্ভারের সাথে কানেক্ট হচ্ছে...</div>
+                    <div class="spinner" id="loadingSpinner"></div>
+                </div>
+            </div>
+
             <div class="player-controls-overlay" id="customControls">
                 <button class="nav-btn-custom" onclick="prevChannel()"><i class="fas fa-backward-step"></i></button>
                 <button class="play-btn-custom" onclick="togglePlay()" id="playPauseBtn"><i class="fas fa-pause"></i></button>
@@ -654,13 +721,10 @@ body.lightmode .mobile-menu-btn {
             </div>
         </div>
 
-        <!-- CHANNEL GRID -->
         <h2 class="section-header" id="currentCategoryTitle">All Channels</h2>
         <div class="channel-grid" id="channelGrid">
-            <!-- Channels injected via JS -->
-        </div>
+            </div>
 
-        <!-- BOTTOM SECTION -->
         <div class="bottom-section">
             <h3>Connect With Us</h3>
             <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">Share your feedback about our IPTV service</p>
@@ -707,7 +771,37 @@ document.addEventListener("DOMContentLoaded", () => {
     initTheme();
     loadPlaylist();
     setupPlayerUI();
+    setupVideoEvents();
 });
+
+/* SETUP VIDEO EVENTS FOR BUFFERING */
+function setupVideoEvents() {
+    const video = document.getElementById('video');
+    const overlay = document.getElementById('loadingOverlay');
+    const loadText = document.getElementById('loadingText');
+    const spinner = document.getElementById('loadingSpinner');
+
+    // When video starts actually playing
+    video.addEventListener('playing', () => {
+        overlay.classList.remove('active');
+    });
+
+    // When video is buffering/waiting for data
+    video.addEventListener('waiting', () => {
+        loadText.innerText = 'সার্ভারের সাথে কানেক্ট হচ্ছে...';
+        spinner.style.display = 'block';
+        overlay.classList.add('active');
+    });
+
+    // When error occurs
+    video.addEventListener('error', () => {
+        loadText.innerText = 'চ্যানেলটি বর্তমানে অফলাইন আছে';
+        spinner.style.display = 'none';
+        setTimeout(() => {
+            overlay.classList.remove('active');
+        }, 3000);
+    });
+}
 
 /* TOGGLE MOBILE MENU */
 function toggleMenu() {
@@ -907,6 +1001,14 @@ function playChannel(index, scrollToTop = false){
 
     const video = document.getElementById('video');
     const channel = channels[index];
+    const overlay = document.getElementById('loadingOverlay');
+    const loadText = document.getElementById('loadingText');
+    const spinner = document.getElementById('loadingSpinner');
+
+    // Show Custom TV Loading Screen immediately on click
+    loadText.innerText = 'সার্ভারের সাথে কানেক্ট হচ্ছে...';
+    spinner.style.display = 'block';
+    overlay.classList.add('active');
 
     if(Hls.isSupported()){
         const hls = new Hls();
@@ -915,6 +1017,13 @@ function playChannel(index, scrollToTop = false){
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
             video.play().catch(e => console.log("Autoplay prevented"));
             updatePlayPauseIcon();
+        });
+        hls.on(Hls.Events.ERROR, function (event, data) {
+            if (data.fatal) {
+                loadText.innerText = 'ভিডিও লোড হতে সমস্যা হচ্ছে';
+                spinner.style.display = 'none';
+                setTimeout(() => overlay.classList.remove('active'), 3000);
+            }
         });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = channel.url;

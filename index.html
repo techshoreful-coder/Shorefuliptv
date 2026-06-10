@@ -1,838 +1,722 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Shoreful IPTV</title>
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
 
 <style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
+:root {
+    --primary-red: #e50914;
+    --primary-red-glow: rgba(229, 9, 20, 0.6);
+    --bg-dark: #0f0f0f;
+    --card-bg: #ffffff;
+    --card-border: #e0e0e0;
+    --active-color: #00ff84;
 }
 
-body{
-background:#000;
-color:white;
-overflow-x:hidden;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: var(--bg-dark);
+    color: white;
+    overflow-x: hidden;
+    transition: background-color 0.3s;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--primary-red);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #111;
 }
 
 /* HEADER */
-
-.header{
-background:#000;
-padding:6px;
-text-align:center;
-border-top:1px solid red;
-border-bottom:1px solid red;
+.header {
+    background: #000;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 2px solid var(--primary-red);
+    position: relative;
+    z-index: 10000;
 }
 
-.header h1{
-font-size:30px;
-color:#ff1a1a;
-text-shadow:0 0 15px red;
+.header h1 {
+    font-size: 26px;
+    color: var(--primary-red);
+    text-shadow: 0 0 10px var(--primary-red-glow);
+    font-weight: 800;
+    letter-spacing: 1px;
 }
 
-/* PLAYER */
-
-.player-box{
-position:relative;
-width:100%;
-background:black;
+#themeToggle {
+    position: absolute;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffcc33;
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.3s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#themeToggle:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
 
-video{
-width:100%;
-height:250px;
-background:black;
-object-fit:fill;
+/* PLAYER WRAPPER */
+.player-wrapper {
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+    background: #000;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+}
+
+.player-box {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    background: black;
+    aspect-ratio: 16 / 9; /* Makes it perfectly responsive */
+}
+
+video {
+    width: 100%;
+    height: 100%;
+    background: black;
+    object-fit: contain;
 }
 
 /* CONTROLS */
-
-.custom-controls{
-
-position:absolute;
-top:50%;
-left:50%;
-
-transform:translate(-50%,-50%);
-
-display:flex;
-gap:15px;
-
-z-index:999;
-transition:.4s;
-
+.custom-controls {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    gap: 20px;
+    z-index: 999;
+    transition: 0.4s;
 }
 
-.control-btn{
-
-width:58px;
-height:58px;
-
-border:none;
-border-radius:50%;
-
-background:red;
-color:white;
-
-font-size:22px;
-
-display:flex;
-justify-content:center;
-align-items:center;
-
-cursor:pointer;
-
-box-shadow:
-0 0 15px rgba(255,0,0,.6);
-
+.control-btn {
+    width: 50px;
+    height: 50px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(229, 9, 20, 0.85);
+    color: white;
+    font-size: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 0 15px var(--primary-red-glow);
+    backdrop-filter: blur(5px);
+    transition: 0.2s;
+}
+.control-btn:hover {
+    transform: scale(1.1);
+    background: var(--primary-red);
 }
 
-/* SEARCH */
-
-.search-box{
-padding:2px;
+@media (min-width: 768px) {
+    .control-btn {
+        width: 65px;
+        height: 65px;
+        font-size: 24px;
+    }
 }
 
-.search-box input{
-
-width:100%;
-padding:8px;
-
-font-size:14px;
-
-border:none;
-outline:none;
-
-border-radius:12px;
-
-background:#111;
-color:white;
-
+/* STICKY BAR FOR SEARCH & TABS */
+.sticky-bar {
+    position: sticky;
+    top: auto; /* Handled dynamically by native scrolling flow or JS if exact calc needed, but CSS handles it decently */
+    z-index: 9998;
+    background: var(--bg-dark);
+    padding: 10px 15px;
+    border-bottom: 1px solid #222;
 }
 
-/* CHANNEL GRID */
-
-.channel-grid{
-
-display:grid;
-grid-template-columns:repeat(3,1fr);
-
-gap:12px;
-padding:12px;
-
+.search-box input {
+    width: 100%;
+    max-width: 500px;
+    display: block;
+    margin: 0 auto 10px auto;
+    padding: 12px 20px;
+    font-size: 15px;
+    border: 1px solid #333;
+    outline: none;
+    border-radius: 25px;
+    background: #1a1a1a;
+    color: white;
+    transition: 0.3s;
 }
-
-/* CHANNEL */
-
-.channel{
-
-background:white;
-
-border-radius:20px;
-
-padding:4px;
-
-height:75px;
-
-display:flex;
-justify-content:center;
-align-items:center;
-
-cursor:pointer;
-
-border:2px solid #00cfff;
-
-box-shadow:
-0 0 12px rgba(0,207,255,.5);
-
-transition:.3s;
-
-}
-
-.channel:hover{
-transform:scale(1.03);
-}
-
-.channel img{
-
-width:75%;
-height:75%;
-object-fit:fill;
-
-}
-
-/* ACTIVE */
-
-.active{
-
-border:3px solid #00ff84 !important;
-
-box-shadow:
-0 0 18px #00ff84,
-0 0 28px rgba(0,255,132,.8);
-
-}
-
-/* CONTACT */
-
-.contact-title{
-
-text-align:center;
-
-font-size:13px;
-font-weight:bold;
-
-margin-top:0px;
-margin-bottom:0px;
-
-color:white;
-
-text-shadow:
-0 0 10px red;
-
-}
-
-.social-box{
-
-display:flex;
-justify-content:center;
-gap:10px;
-
-padding-bottom:0px;
-
-}
-
-.social-box a{
-
-width:35px;
-height:35px;
-
-border-radius:50%;
-
-display:flex;
-justify-content:center;
-align-items:center;
-
-font-size:20px;
-
-text-decoration:none;
-color:white;
-
-}
-
-.telegram{
-background:#229ED9;
-}
-
-.facebook{
-background:#1877F2;
-}
-
-/* FOOTER */
-
-.footer{
-
-text-align:center;
-
-padding:2px;
-
-font-size:12px;
-font-weight:bold;
-
-border-top:2px solid red;
-
-}
-
-.footer span{
-color:red;
-}
-.player-box{
-position:sticky;
-top:0;
-z-index:9999;
-background:black;
-}
-
-.search-box{
-position:sticky;
-top:250px;
-z-index:9998;
-background:black;
-}
-
-.channel-grid{
-overflow-y:auto;
-padding-bottom:20px;
+.search-box input:focus {
+    border-color: var(--primary-red);
+    box-shadow: 0 0 10px rgba(229, 9, 20, 0.3);
 }
 
 /* GROUP TABS */
-.group-tabs{
-display:flex;
-overflow-x:auto;
-gap:6px;
-padding:6px;
-background:#000;
-position:sticky;
-top:286px;
-z-index:9997;
+.group-tabs {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 5px;
+    justify-content: flex-start;
+    scrollbar-width: none; /* Firefox */
 }
-.group-tab{
-background:#111;
-color:white;
-border:1px solid #00cfff;
-border-radius:12px;
-padding:6px 10px;
-cursor:pointer;
-white-space:nowrap;
-}
-.group-tab.active-tab{
-background:#00cfff;
-color:black;
-font-weight:bold;
+.group-tabs::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
 }
 
-
-.fav-btn{
-position:absolute;
-top:2px;
-right:4px;
-font-size:18px;
-z-index:5;
-cursor:pointer;
-}
-.channel{
-position:relative;
+@media (min-width: 768px) {
+    .group-tabs {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
 }
 
-#themeToggle{
-background:#4a0000;
-color:#ffcc33;
-border:1px solid #660000;
-border-radius:14px;
-padding:8px 12px;
-cursor:pointer;
-box-shadow:none;
+.group-tab {
+    background: #1a1a1a;
+    color: #ccc;
+    border: 1px solid #333;
+    border-radius: 20px;
+    padding: 8px 16px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: 13px;
+    transition: all 0.3s ease;
 }
-body.darkmode .channel{
-background:#121212 !important;
-border-color:#333 !important;
-box-shadow:none !important;
+.group-tab:hover {
+    background: #333;
+    color: white;
 }
-body.darkmode .channel img{
-filter:brightness(.75) contrast(.95);
+.group-tab.active-tab {
+    background: var(--primary-red);
+    color: white;
+    border-color: var(--primary-red);
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(229, 9, 20, 0.4);
 }
 
+/* CHANNEL GRID */
+.channel-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
 
-.channel-name{position:absolute;bottom:2px;left:0;right:0;font-size:10px;text-align:center;color:#fff;background:rgba(0,0,0,.6);border-radius:0 0 12px 12px;padding:1px;}
-#loadingSpinner{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10000;font-size:22px;background:rgba(0,0,0,.35);padding:4px 8px;border-radius:50%;}
-#topBtn{position:fixed;right:12px;bottom:28px;z-index:99999;display:none;width:30px;height:30px;border-radius:50%;border:none;background:#7a0000;color:white;font-size:12px;}
+.channel-grid {
+    display: grid;
+    /* Responsive Grid: Mobile 3 cols roughly, Desktop adjusts automatically */
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 15px;
+    padding: 20px;
+}
 
+@media (min-width: 768px) {
+    .channel-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 20px;
+    }
+}
+
+/* CHANNEL CARD */
+.channel {
+    background: var(--card-bg);
+    border-radius: 12px;
+    position: relative;
+    height: 90px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s, border 0.2s;
+    overflow: hidden;
+}
+@media (min-width: 768px) {
+    .channel {
+        height: 110px;
+    }
+}
+
+.channel:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(255, 255, 255, 0.1);
+}
+
+.channel img {
+    width: 65%;
+    height: 55%;
+    object-fit: contain;
+    margin-bottom: 12px; /* Space for absolute text */
+}
+
+.channel-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.75);
+    padding: 4px 2px;
+    backdrop-filter: blur(4px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ACTIVE CHANNEL */
+.active {
+    border: 2px solid var(--active-color) !important;
+    box-shadow: 0 0 15px rgba(0, 255, 132, 0.5) !important;
+}
+
+/* FAVORITE BUTTON */
+.fav-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 14px;
+    z-index: 5;
+    cursor: pointer;
+    background: rgba(0,0,0,0.4);
+    border-radius: 50%;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+.fav-btn:hover {
+    transform: scale(1.2);
+}
+
+/* DARK MODE OVERRIDES */
+body.darkmode {
+    --bg-dark: #050505;
+    --card-bg: #111111;
+    --card-border: #222222;
+}
+body.darkmode .channel img {
+    filter: brightness(0.85) contrast(1.1);
+}
+body.darkmode .sticky-bar {
+    background: #050505;
+}
+
+/* CONTACT & FOOTER */
+.contact-section {
+    padding: 30px 20px 20px;
+    text-align: center;
+}
+
+.contact-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.social-box {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.social-box a {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+    text-decoration: none;
+    color: white;
+    transition: 0.3s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.social-box a:hover {
+    transform: translateY(-3px);
+}
+.telegram { background: #229ED9; }
+.facebook { background: #1877F2; }
+
+.footer {
+    text-align: center;
+    padding: 15px;
+    font-size: 13px;
+    font-weight: 600;
+    border-top: 1px solid #222;
+    background: #000;
+    color: #888;
+}
+.footer span {
+    color: var(--primary-red);
+}
+
+/* BACK TO TOP */
+#topBtn {
+    position: fixed;
+    right: 20px;
+    bottom: 30px;
+    z-index: 99999;
+    display: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: var(--primary-red);
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    transition: 0.3s;
+}
+#topBtn:hover {
+    background: #b80710;
+}
 </style>
-
 </head>
 
 <body>
 
-<!-- HEADER -->
-
 <div class="header">
-
-<div style="display:flex;justify-content:center;align-items:center;gap:12px;"><h1>Shoreful IPTV</h1><button id="themeToggle" title="Dark Mode">🌙</button></div>
-
+    <h1>Shoreful IPTV</h1>
+    <button id="themeToggle" title="Toggle Theme">🌙</button>
 </div>
 
-<!-- PLAYER -->
-
-<div class="player-box">
-
-<video id="video"
-autoplay
-playsinline
-controls>
-
-</video>
-
-<!-- CONTROLS -->
-
-<div class="custom-controls">
-
-<button class="control-btn"
-onclick="prevChannel()">
-
-⏮
-
-</button>
-
-<button class="control-btn"
-onclick="togglePlay()">
-
-⏯
-
-</button>
-
-<button class="control-btn"
-onclick="nextChannel()">
-
-⏭
-
-</button>
-
+<div class="player-wrapper">
+    <div class="player-box">
+        <video id="video" autoplay playsinline controls></video>
+        <div class="custom-controls">
+            <button class="control-btn" onclick="prevChannel()"><i class="fas fa-step-backward"></i></button>
+            <button class="control-btn" onclick="togglePlay()"><i class="fas fa-play"></i></button>
+            <button class="control-btn" onclick="nextChannel()"><i class="fas fa-step-forward"></i></button>
+        </div>
+    </div>
 </div>
 
+<div class="sticky-bar">
+    <div class="search-box">
+        <input type="text" id="search" placeholder="Search Channel..." onkeyup="searchChannels()">
+    </div>
+    <div class="group-tabs" id="groupTabs"></div>
 </div>
 
-<!-- SEARCH -->
-
-<div class="search-box">
-
-<input type="text"
-
-id="search"
-
-placeholder="Search Channel..."
-
-onkeyup="searchChannels()">
-
+<div class="channel-container">
+    <div class="channel-grid" id="channelGrid"></div>
 </div>
 
-<div class="group-tabs" id="groupTabs"></div>
-
-<!-- CHANNELS -->
-
-<div class="channel-grid"
-id="channelGrid">
-
+<div class="contact-section">
+    <h2 class="contact-title">আমার টিভি সম্পর্কে মতামত জানাতে</h2>
+    <div class="social-box">
+        <a href="#" target="_blank" class="telegram"><i class="fab fa-telegram-plane"></i></a>
+        <a href="https://www.facebook.com/shoreful" target="_blank" class="facebook"><i class="fab fa-facebook-f"></i></a>
+    </div>
 </div>
-
-<!-- CONTACT -->
-
-<h2 class="contact-title">
-
-আমার টিভি সম্পর্কে মতামত জানাতে
-
-</h2>
-
-<div class="social-box">
-
-<a href="#"
-target="_blank"
-class="telegram">
-
-<i class="fab fa-telegram-plane"></i>
-
-</a>
-
-<a href="https://www.facebook.com/shoreful"
-target="_blank"
-class="facebook">
-
-<i class="fab fa-facebook-f"></i>
-
-</a>
-
-</div>
-
-<!-- FOOTER -->
 
 <div class="footer">
-
-© 2026 <span>SHOREFUL IPTV</span>
-
+    © 2026 <span>SHOREFUL IPTV</span>
 </div>
 
+<button id="topBtn"><i class="fas fa-chevron-up"></i></button>
+
 <script>
-
-/* PLAYLIST */
-
-const playlist =
-'https://raw.githubusercontent.com/Rakib49/Rakibiptv/refs/heads/main/aynaott.m3u';
+/* PLAYLIST CONFIG */
+const playlist = 'https://raw.githubusercontent.com/Rakib49/Rakibiptv/refs/heads/main/aynaott.m3u';
 
 let channels = [];
 let filteredChannels = [];
 let currentIndex = 0;
-let currentGroup='All';
+let currentGroup = 'All';
 let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
 
 /* LOAD PLAYLIST */
-
 fetch(playlist)
+.then(r => r.text())
+.then(data => {
+    const lines = data.split('\n');
+    for(let i=0; i<lines.length; i++){
+        if(lines[i].startsWith('#EXTINF')){
+            const info = lines[i];
+            const url = lines[i+1] ? lines[i+1].trim() : '';
+            if(!url) continue;
 
-.then(r=>r.text())
+            const nameSplit = info.split(',');
+            const name = nameSplit.length > 1 ? nameSplit[1].trim() : 'Unknown Channel';
 
-.then(data=>{
+            let logo = '';
+            const match = info.match(/tvg-logo="(.*?)"/);
+            if(match) logo = match[1];
 
-const lines =
-data.split('\n');
+            let group = 'Other';
+            const g = info.match(/group-title="(.*?)"/i);
+            if(g) group = g[1];
 
-for(let i=0;i<lines.length;i++){
+            channels.push({ name, url, logo, group });
+        }
+    }
 
-if(lines[i].startsWith('#EXTINF')){
+    buildTabs();
+    filteredChannels = channels;
+    renderChannels();
 
-const info = lines[i];
-const url = lines[i+1];
-const name = info.split(',')[1];
+    if(channels.length > 0){
+        playChannel(0);
+    }
+})
+.catch(err => console.error("Error loading playlist:", err));
 
-let logo='';
-
-const match =
-info.match(/tvg-logo="(.*?)"/);
-
-if(match){logo=match[1];}
-let group='Other';
-const g=info.match(/group-title="(.*?)"/i);
-if(g){group=g[1];}
-
-channels.push({
-name,
-url,
-logo,
-group
-});
-
-}
-
-}
-
-buildTabs();
-filteredChannels = channels;
-renderChannels();
-
-if(channels.length>0){
-playChannel(0);
-}
-
-});
-
-/* RENDER */
-
-
+/* GROUP NORMALIZATION */
 function normalizeGroup(g){
-g=(g||'').toLowerCase();
-if(['bangla','bangladesh','indian bangla','inbangla'].includes(g)) return 'Bangla';
-if(g.includes('world cup') || g.includes('fifa world cup')) return '🏆 FIFA World Cup';
-if(g.includes('sport')) return 'Sports';
-if(g.includes('news')) return 'News';
-if(g.includes('movie')) return 'Movies';
-if(g.includes('music')) return 'Music';
-if(g.includes('kid')) return 'Kids';
-if(['english','hindi','urdhu'].includes(g)) return 'International';
-if(['entertainment','drama'].includes(g)) return 'Entertainment';
-return 'Others';
+    g = (g || '').toLowerCase();
+    if(['bangla','bangladesh','indian bangla','inbangla'].includes(g)) return 'Bangla';
+    if(g.includes('world cup') || g.includes('fifa world cup')) return '🏆 FIFA World Cup';
+    if(g.includes('sport')) return 'Sports';
+    if(g.includes('news')) return 'News';
+    if(g.includes('movie')) return 'Movies';
+    if(g.includes('music')) return 'Music';
+    if(g.includes('kid')) return 'Kids';
+    if(['english','hindi','urdhu'].includes(g)) return 'International';
+    if(['entertainment','drama'].includes(g)) return 'Entertainment';
+    return 'Others';
 }
 
+/* BUILD TABS */
 function buildTabs(){
-const tabs=document.getElementById('groupTabs');
-const groups=['All','❤️ Favorites','Bangla','🏆 FIFA World Cup','Sports','News','Entertainment','Movies','Music','Kids','International','Others'];
-tabs.innerHTML=groups.map(g=>`<button class="group-tab ${g==='All'?'active-tab':''}" onclick="filterGroup('${g}',this)">${g}</button>`).join('');
+    const tabs = document.getElementById('groupTabs');
+    const groups = ['All', '❤️ Favorites', 'Bangla', '🏆 FIFA World Cup', 'Sports', 'News', 'Entertainment', 'Movies', 'Music', 'Kids', 'International', 'Others'];
+    tabs.innerHTML = groups.map(g => `<button class="group-tab ${g === 'All' ? 'active-tab' : ''}" onclick="filterGroup('${g}', this)">${g}</button>`).join('');
 }
 
-function filterGroup(group,btn){
-currentGroup=group;
-document.querySelectorAll('.group-tab').forEach(x=>x.classList.remove('active-tab'));
-if(btn) btn.classList.add('active-tab');
-if(group==='All'){
-filteredChannels = channels;
-}else if(group==='❤️ Favorites'){
-filteredChannels = channels.filter(c=>favorites.includes(c.url));
-}else{
-filteredChannels = channels.filter(c=>normalizeGroup(c.group)===group);
-}
-renderChannels();
+/* FILTER BY GROUP */
+function filterGroup(group, btn){
+    currentGroup = group;
+    document.querySelectorAll('.group-tab').forEach(x => x.classList.remove('active-tab'));
+    if(btn) btn.classList.add('active-tab');
+
+    if(group === 'All'){
+        filteredChannels = channels;
+    } else if(group === '❤️ Favorites'){
+        filteredChannels = channels.filter(c => favorites.includes(c.url));
+    } else {
+        filteredChannels = channels.filter(c => normalizeGroup(c.group) === group);
+    }
+    renderChannels();
 }
 
+/* RENDER CHANNELS */
 function renderChannels(){
+    const grid = document.getElementById('channelGrid');
+    grid.innerHTML = '';
 
-const grid =
-document.getElementById('channelGrid');
+    filteredChannels.forEach((ch) => {
+        const div = document.createElement('div');
+        div.className = 'channel';
 
-grid.innerHTML='';
+        // Check if active globally
+        if(channels[currentIndex] && channels[currentIndex].url === ch.url) {
+            div.classList.add('active');
+        }
 
-filteredChannels.forEach((ch,index)=>{
+        const fav = favorites.includes(ch.url) ? '❤️' : '🤍';
+        const fallbackImg = "https://via.placeholder.com/150x100?text=No+Logo";
 
-const div =
-document.createElement('div');
+        div.innerHTML = `
+            <div class="fav-btn">${fav}</div>
+            <img src="${ch.logo || fallbackImg}" onerror="this.src='${fallbackImg}'">
+            <div class="channel-name">${ch.name}</div>
+        `;
 
-div.className='channel';
+        div.onclick = () => playChannel(channels.findIndex(c => c.url === ch.url));
 
-const fav = favorites.includes(ch.url) ? '❤️' : '🤍';
+        const favBtn = div.querySelector('.fav-btn');
+        favBtn.addEventListener('click', function(e){
+            e.stopPropagation();
+            if(favorites.includes(ch.url)){
+                favorites = favorites.filter(x => x !== ch.url);
+            } else {
+                favorites.push(ch.url);
+            }
+            localStorage.setItem('favorites', JSON.stringify(favorites));
 
-div.innerHTML=`
-<div class="fav-btn">${fav}</div>
-<img src="${ch.logo}"><div class="channel-name">${ch.name}</div>
-`;
+            if(currentGroup === '❤️ Favorites'){
+                filteredChannels = channels.filter(c => favorites.includes(c.url));
+            }
+            renderChannels();
+        });
 
-div.onclick=()=>playChannel(channels.indexOf(ch));
-
-
-const favBtn = div.querySelector('.fav-btn');
-
-favBtn.addEventListener('click', function(e){
-e.stopPropagation();
-
-if(favorites.includes(ch.url)){
-favorites = favorites.filter(x=>x!==ch.url);
-}else{
-favorites.push(ch.url);
-}
-
-localStorage.setItem('favorites',JSON.stringify(favorites));
-
-if(currentGroup==='❤️ Favorites'){
-filteredChannels = channels.filter(c=>favorites.includes(c.url));
-}
-
-renderChannels();
-});
-
-
-grid.appendChild(div);
-
-});
-
-}
-
-
-function toggleFavorite(event,url){
-
-event.stopPropagation();
-
-if(favorites.includes(url)){
-favorites = favorites.filter(x=>x!==url);
-}else{
-favorites.push(url);
-}
-
-localStorage.setItem('favorites',JSON.stringify(favorites));
-
-if(currentGroup==='❤️ Favorites'){
-filteredChannels = channels.filter(c=>favorites.includes(c.url));
-}
-
-renderChannels();
-}
-
-/* PLAY */
-
-
-function playChannel(index){
-
-currentIndex=index;
-
-const video =
-document.getElementById('video');
-
-const channel =
-channels[index];
-
-if(Hls.isSupported()){
-
-const hls =
-new Hls();
-
-hls.loadSource(channel.url);
-
-hls.attachMedia(video);
-
-hls.on(
-Hls.Events.MANIFEST_PARSED,
-function(){
-
-video.play();
-
-});
-
-}
-
-else{
-
-video.src=channel.url;
-video.play();
-
-}
-
-document.querySelectorAll('.channel')
-.forEach(el=>{
-
-el.classList.remove('active');
-
-});
-
-const cards = document.querySelectorAll('.channel');
-
-cards.forEach((card,i)=>{
-    if(
-        filteredChannels[i] &&
-        filteredChannels[i].url === channel.url
-    ){
-        card.classList.add('active');
-
-        const rect = card.getBoundingClientRect();
-const topLimit = 320; // player + tabs area
-
-if(rect.top < topLimit || rect.bottom > window.innerHeight){
-    card.scrollIntoView({
-        behavior:'smooth',
-        block:'nearest'
+        grid.appendChild(div);
     });
 }
+
+/* PLAY CHANNEL */
+function playChannel(index){
+    if(index < 0 || index >= channels.length) return;
+    currentIndex = index;
+
+    const video = document.getElementById('video');
+    const channel = channels[index];
+
+    if(Hls.isSupported()){
+        const hls = new Hls();
+        hls.loadSource(channel.url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, function(){
+            video.play();
+            updatePlayPauseIcon();
+        });
+    } else {
+        video.src = channel.url;
+        video.play();
+        updatePlayPauseIcon();
     }
-});
 
+    // Update active class purely on UI
+    document.querySelectorAll('.channel').forEach(el => el.classList.remove('active'));
+    renderChannels(); // Re-render to easily attach active class based on state
+
+    // Smooth scroll to active if not visible
+    setTimeout(() => {
+        const activeCard = document.querySelector('.channel.active');
+        if(activeCard) {
+            const rect = activeCard.getBoundingClientRect();
+            const stickyOffset = document.querySelector('.player-wrapper').offsetHeight + document.querySelector('.sticky-bar').offsetHeight;
+            if(rect.top < stickyOffset || rect.bottom > window.innerHeight){
+                activeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    }, 100);
 }
 
-/* NEXT */
-
+/* NEXT/PREV/PLAY CONTROLS */
 function nextChannel(){
-
-currentIndex++;
-
-if(currentIndex>=channels.length){
-
-currentIndex=0;
-
+    currentIndex++;
+    if(currentIndex >= channels.length) currentIndex = 0;
+    playChannel(currentIndex);
 }
-
-playChannel(currentIndex);
-
-}
-
-/* PREV */
 
 function prevChannel(){
-
-currentIndex--;
-
-if(currentIndex<0){
-
-currentIndex=
-channels.length-1;
-
+    currentIndex--;
+    if(currentIndex < 0) currentIndex = channels.length - 1;
+    playChannel(currentIndex);
 }
-
-playChannel(currentIndex);
-
-}
-
-/* PLAY PAUSE */
 
 function togglePlay(){
-
-const video =
-document.getElementById('video');
-
-if(video.paused){
-
-video.play();
-
+    const video = document.getElementById('video');
+    if(video.paused){
+        video.play();
+    } else {
+        video.pause();
+    }
+    updatePlayPauseIcon();
 }
 
-else{
-
-video.pause();
-
+function updatePlayPauseIcon() {
+    const video = document.getElementById('video');
+    const playBtn = document.querySelectorAll('.control-btn')[1];
+    if(video.paused) {
+        playBtn.innerHTML = '<i class="fas fa-play"></i>';
+    } else {
+        playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+    }
 }
 
-}
+document.getElementById('video').addEventListener('play', updatePlayPauseIcon);
+document.getElementById('video').addEventListener('pause', updatePlayPauseIcon);
 
 /* SEARCH */
-
 function searchChannels(){
+    const input = document.getElementById('search').value.toLowerCase();
+    const cards = document.querySelectorAll('.channel');
 
-const input =
-document.getElementById('search')
-.value.toLowerCase();
-
-const cards =
-document.querySelectorAll('.channel');
-
-filteredChannels.forEach((ch,index)=>{
-
-if(ch.name.toLowerCase()
-.includes(input)){
-
-cards[index]
-.style.display='flex';
-
+    filteredChannels.forEach((ch, index) => {
+        if(cards[index]) {
+            if(ch.name.toLowerCase().includes(input)){
+                cards[index].style.display = 'flex';
+            } else {
+                cards[index].style.display = 'none';
+            }
+        }
+    });
 }
 
-else{
-
-cards[index]
-.style.display='none';
-
-}
-
-});
-
-}
-
-/* AUTO HIDE */
-
-const controls =
-document.querySelector('.custom-controls');
+/* AUTO HIDE UI CONTROLS */
+const controls = document.querySelector('.custom-controls');
+let hideTimeout;
 
 function showUI(){
-
-controls.style.opacity='1';
-
-setTimeout(()=>{
-
-controls.style.opacity='0';
-
-},2000);
-
+    controls.style.opacity = '1';
+    controls.style.pointerEvents = 'auto';
+    clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => {
+        controls.style.opacity = '0';
+        controls.style.pointerEvents = 'none';
+    }, 3000);
 }
 
 showUI();
+document.querySelector('.player-wrapper').addEventListener('mousemove', showUI);
+document.querySelector('.player-wrapper').addEventListener('click', showUI);
+document.querySelector('.player-wrapper').addEventListener('touchstart', showUI);
 
-document.querySelector('.player-box')
-.addEventListener('click',()=>{
-
-showUI();
-
-});
-
-</script>
-
-
-<script>
+/* THEME TOGGLE */
 (function(){
-const btn=document.getElementById('themeToggle');
-if(!btn) return;
+    const btn = document.getElementById('themeToggle');
+    if(!btn) return;
 
-if(localStorage.getItem('darkmode')==='on'){
- document.body.classList.add('darkmode');
-}
+    if(localStorage.getItem('darkmode') === 'on'){
+        document.body.classList.add('darkmode');
+        btn.innerHTML = '☀️';
+    }
 
-btn.onclick=function(){
- document.body.classList.toggle('darkmode');
- localStorage.setItem('darkmode',
- document.body.classList.contains('darkmode')?'on':'off');
-};
+    btn.onclick = function(){
+        document.body.classList.toggle('darkmode');
+        const isDark = document.body.classList.contains('darkmode');
+        localStorage.setItem('darkmode', isDark ? 'on' : 'off');
+        btn.innerHTML = isDark ? '☀️' : '🌙';
+    };
 })();
-</script>
 
-<button id="topBtn">↑</button>
+/* SCROLL TO TOP */
+const topBtn = document.getElementById('topBtn');
+topBtn.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
-<script>
-document.getElementById('topBtn').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
-window.addEventListener('scroll',()=>{
-document.getElementById('topBtn').style.display=window.scrollY>300?'block':'none';
+window.addEventListener('scroll', () => {
+    topBtn.style.display = window.scrollY > 300 ? 'block' : 'none';
 });
-
 </script>
 
 </body>

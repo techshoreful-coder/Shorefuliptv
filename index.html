@@ -309,7 +309,8 @@ video { width: 100%; height: 100%; object-fit: contain; background: #000; displa
 .bottom-section { margin-top: 20px; padding: 30px; background: var(--bg-panel); border-radius: 16px; text-align: center; border: 1px solid var(--border-color); }
 .social-links { display: flex; justify-content: center; gap: 15px; margin-top: 15px; }
 .social-links a { width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 18px; text-decoration: none; transition: 0.3s; }
-.social-links a.fb { background: #1877F2; } .social-links a.tg { background: #229ED9; }
+.social-links a.fb { background: #1877F2; } 
+.social-links a.dev { background: #6f42c1; } /* Developer Icon Color */
 .social-links a:hover { transform: translateY(-3px); filter: brightness(1.2); }
 .footer-text { margin-top: 20px; font-size: 13px; color: var(--text-muted); }
 .footer-text span { color: var(--primary); font-weight: bold; }
@@ -418,9 +419,10 @@ body.lightmode .loading-text-minimal { color: #111; text-shadow: none; }
 
         <div class="bottom-section">
             <h3>Connect With Us</h3>
-            <p class="bengali-text" style="font-size: 14px; color: var(--text-muted); margin-top: 5px;">আমার টিভি সম্পর্কে মতামত জানাতে</p>
+            <p class="bengali-text" style="font-size: 14px; color: var(--text-muted); margin-top: 5px;">Developer Shoreful Islam</p>
             <div class="social-links">
-                <a href="#" target="_blank" class="tg"><i class="fab fa-telegram-plane"></i></a>
+                <!-- Developed Icon (Code Symbol) Used instead of Telegram -->
+                <a href="https://shoreful-islam.vercel.app/" target="_blank" class="dev" title="Developer"><i class="fas fa-code"></i></a>
                 <a href="https://www.facebook.com/share/1GGVpi4anC/" target="_blank" class="fb"><i class="fab fa-facebook-f"></i></a>
             </div>
             <div class="footer-text">
@@ -744,19 +746,19 @@ function toggleFullScreen() {
     if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
         if (player.requestFullscreen) {
             player.requestFullscreen();
-        } else if (player.webkitRequestFullscreen) { /* Safari */
+        } else if (player.webkitRequestFullscreen) { 
             player.webkitRequestFullscreen();
-        } else if (video.webkitEnterFullscreen) { /* Fallback for iOS */
+        } else if (video.webkitEnterFullscreen) { 
             video.webkitEnterFullscreen();
-        } else if (player.msRequestFullscreen) { /* IE11 */
+        } else if (player.msRequestFullscreen) { 
             player.msRequestFullscreen();
         }
     } else {
         if (document.exitFullscreen) {
             document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) { /* Safari */
+        } else if (document.webkitExitFullscreen) { 
             document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) { /* IE11 */
+        } else if (document.msExitFullscreen) { 
             document.msExitFullscreen();
         }
     }

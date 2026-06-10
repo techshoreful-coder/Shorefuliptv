@@ -315,7 +315,7 @@ video { width: 100%; height: 100%; object-fit: contain; background: #000; displa
 .footer-text { margin-top: 20px; font-size: 13px; color: var(--text-muted); }
 .footer-text span { color: var(--primary); font-weight: bold; }
 
-/* REAL VISITOR & NETWORK INFO BOX */
+/* REAL VISITOR & NETWORK INFO BOX (Colors matching main body font) */
 .live-network-box {
     margin-top: 20px;
     padding-top: 15px;
@@ -329,11 +329,8 @@ video { width: 100%; height: 100%; object-fit: contain; background: #000; displa
     justify-content: center;
 }
 .live-network-box span {
-    color: #00ff84;
+    color: var(--text-main); /* Standard color matching the font */
     font-weight: 600;
-}
-body.lightmode .live-network-box span {
-    color: #007a41;
 }
 @media (min-width: 768px) {
     .live-network-box {
@@ -404,8 +401,7 @@ body.lightmode .loading-text-minimal { color: #111; text-shadow: none; }
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-title">Categories</div>
         <div id="groupTabs">
-            <!-- Skeleton Tabs -->
-        </div>
+            </div>
     </aside>
 
     <main class="main-content">
@@ -427,7 +423,6 @@ body.lightmode .loading-text-minimal { color: #111; text-shadow: none; }
                 </div>
             </div>
 
-            <!-- Fullscreen Button inside Wrapper -->
             <button class="fullscreen-btn" id="fsBtn" onclick="toggleFullScreen()" title="Full Screen">
                 <i class="fas fa-expand"></i>
             </button>
@@ -441,8 +436,7 @@ body.lightmode .loading-text-minimal { color: #111; text-shadow: none; }
 
         <h2 class="section-header" id="currentCategoryTitle">All Channels</h2>
         <div class="channel-grid fade-in" id="channelGrid">
-            <!-- Skeleton Grid -->
-        </div>
+            </div>
 
         <div class="bottom-section">
             <h3>Connect With Us</h3>
@@ -455,11 +449,10 @@ body.lightmode .loading-text-minimal { color: #111; text-shadow: none; }
                 © কারিগরি সহযোগিতায় শরিফুল ইসলাম 
             </div>
 
-            <!-- REAL VISITOR & NETWORK INFO BOX -->
             <div class="live-network-box bengali-text">
                 <div><i class="fas fa-users"></i> মোট ভিজিটর: <span id="visitorCount">লোডিং...</span></div>
-                <div><i class="fas fa-network-wired"></i> আপনার আইপি: <span id="userIP">লোডিং...</span></div>
-                <div><i class="fas fa-server"></i> আইএসপি (ISP): <span id="userISP">লোডিং...</span></div>
+                <div><i class="fas fa-globe"></i> আপনার দেশ: <span id="userCountry">লোডিং...</span></div>
+                <div><i class="fas fa-map-marker-alt"></i> আপনার শহর: <span id="userCity">লোডিং...</span></div>
             </div>
         </div>
         
@@ -502,7 +495,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadLiveStats(); 
 });
 
-/* FETCH VISITOR, IP & ISP DATA WITH FALLBACK PROTECTION */
+/* FETCH VISITOR, COUNTRY & CITY DATA */
 function loadLiveStats() {
     // Visitor Counter
     fetch('https://api.counterapi.dev/v1/shoreful_iptv_premium/visits/increment')
@@ -513,38 +506,38 @@ function loadLiveStats() {
     })
     .catch(() => document.getElementById('visitorCount').innerText = '১+');
 
-    // PRIMARY API: ipapi.co (Highly stable over HTTPS and works well globally)
+    // PRIMARY API: ipapi.co (Highly stable for Country & City metadata)
     fetch('https://ipapi.co/json/')
     .then(res => res.json())
     .then(data => {
-        if(data && data.ip) {
-            document.getElementById('userIP').innerText = data.ip;
-            document.getElementById('userISP').innerText = data.org || data.asn || 'Unknown';
+        if(data && data.country_name) {
+            document.getElementById('userCountry').innerText = data.country_name;
+            document.getElementById('userCity').innerText = data.city || 'Unknown';
         } else {
-            runFallbackIP(); // Trigger backup if primary fails
+            runFallbackLocation();
         }
     })
     .catch(() => {
-        runFallbackIP(); // Trigger backup on error
+        runFallbackLocation();
     });
 }
 
-/* BACKUP IP/ISP FETCH SYSTEM */
-function runFallbackIP() {
+/* BACKUP LOCATION FETCH SYSTEM */
+function runFallbackLocation() {
     fetch('https://ipwho.is/')
     .then(res => res.json())
     .then(data => {
         if(data && data.success) {
-            document.getElementById('userIP').innerText = data.ip || 'Unknown';
-            document.getElementById('userISP').innerText = (data.connection && data.connection.isp) ? data.connection.isp : 'Unknown';
+            document.getElementById('userCountry').innerText = data.country || 'Unknown';
+            document.getElementById('userCity').innerText = data.city || 'Unknown';
         } else {
-            document.getElementById('userIP').innerText = 'সনাক্ত করা যায়নি';
-            document.getElementById('userISP').innerText = 'সনাক্ত করা যায়নি';
+            document.getElementById('userCountry').innerText = 'সনাক্ত করা যায়নি';
+            document.getElementById('userCity').innerText = 'সনাক্ত করা যায়নি';
         }
     })
     .catch(() => {
-        document.getElementById('userIP').innerText = 'অফলাইন';
-        document.getElementById('userISP').innerText = 'অফলাইন';
+        document.getElementById('userCountry').innerText = 'অফলাইন';
+        document.getElementById('userCity').innerText = 'অফলাইন';
     });
 }
 
@@ -685,6 +678,7 @@ function filterGroup(group, btnElement){
     if(window.innerWidth <= 992) toggleMenu();
 }
 
+/* SEARCH */
 function searchChannels(query){
     query = query.toLowerCase();
     if(document.getElementById('desktopSearch').value !== query) document.getElementById('desktopSearch').value = query;

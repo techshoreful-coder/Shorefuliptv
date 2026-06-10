@@ -55,6 +55,17 @@ body {
 }
 
 /* ==================================
+   SMOOTH FADE IN ANIMATION
+================================== */
+.fade-in {
+    animation: fadeIn 0.6s ease-in-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================================
    SKELETON LOADING ANIMATIONS
 ================================== */
 @keyframes skeleton-dark {
@@ -78,7 +89,6 @@ body.lightmode .skeleton {
     animation: skeleton-light 1.5s infinite ease-in-out;
 }
 
-/* Skeleton Styles */
 .skeleton-tab {
     width: 100%;
     height: 45px;
@@ -308,7 +318,6 @@ body.lightmode .loading-text-minimal { color: #111; text-shadow: none; }
 </head>
 <body>
 
-<!-- NAVBAR -->
 <header class="navbar">
     <div class="brand">
         <button id="mobileMenuBtn" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
@@ -329,15 +338,12 @@ body.lightmode .loading-text-minimal { color: #111; text-shadow: none; }
 <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMenu()"></div>
 
 <div class="layout">
-    <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-title">Categories</div>
         <div id="groupTabs">
-            <!-- Tabs Skeleton Injected via JS -->
-        </div>
+            </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <main class="main-content">
         
         <div class="mobile-search">
@@ -345,14 +351,11 @@ body.lightmode .loading-text-minimal { color: #111; text-shadow: none; }
             <input type="text" id="mobileSearch" placeholder="Search channels..." onkeyup="searchChannels(this.value)">
         </div>
 
-        <!-- VIDEO PLAYER -->
         <div class="player-wrapper" id="playerContainer">
-            <!-- Player Skeleton for Initial Load -->
             <div class="skeleton skeleton-player" id="playerSkeleton"></div>
             
             <video id="video" autoplay playsinline controls></video>
             
-            <!-- MINIMAL BUFFERING SPINNER WITH TEXT -->
             <div class="minimal-buffering" id="loadingOverlay">
                 <div class="loading-content-wrapper">
                     <div class="spinner-ring" id="spinnerIcon"></div>
@@ -367,13 +370,10 @@ body.lightmode .loading-text-minimal { color: #111; text-shadow: none; }
             </div>
         </div>
 
-        <!-- CHANNEL GRID -->
         <h2 class="section-header" id="currentCategoryTitle">All Channels</h2>
-        <div class="channel-grid" id="channelGrid">
-            <!-- Grid Skeletons Injected via JS -->
-        </div>
+        <div class="channel-grid fade-in" id="channelGrid">
+            </div>
 
-        <!-- BOTTOM SECTION -->
         <div class="bottom-section">
             <h3>Connect With Us</h3>
             <p class="bengali-text" style="font-size: 14px; color: var(--text-muted); margin-top: 5px;">আমার টিভি সম্পর্কে মতামত জানাতে</p>
@@ -417,7 +417,7 @@ const groupsConfig = [
 /* INITIALIZE */
 document.addEventListener("DOMContentLoaded", () => {
     initTheme();
-    showSkeletons(); // Show animations while data is fetching
+    showSkeletons(); 
     loadPlaylist();
     setupPlayerUI();
     setupVideoEvents();
@@ -428,14 +428,12 @@ function showSkeletons() {
     const tabsContainer = document.getElementById('groupTabs');
     const gridContainer = document.getElementById('channelGrid');
     
-    // Fake Tabs
     let tabsHtml = '';
     for(let i=0; i<8; i++){
         tabsHtml += `<div class="skeleton skeleton-tab"></div>`;
     }
     tabsContainer.innerHTML = tabsHtml;
 
-    // Fake Cards
     let gridHtml = '';
     for(let i=0; i<12; i++){
         gridHtml += `
@@ -499,9 +497,11 @@ function loadPlaylist() {
             }
         }
 
-        // Hide Player Skeleton, Show Video
+        // Hide Skeleton, Show Video with fade in
         document.getElementById('playerSkeleton').style.display = 'none';
-        document.getElementById('video').style.display = 'block';
+        const videoElement = document.getElementById('video');
+        videoElement.style.display = 'block';
+        videoElement.classList.add('fade-in');
 
         buildTabs();
         filteredChannels = channels;
@@ -533,6 +533,7 @@ function buildTabs(){
             <span>${g.name}</span>
         </button>
     `).join('');
+    tabsContainer.classList.add('fade-in');
 }
 
 function filterGroup(group, btnElement){
@@ -550,6 +551,12 @@ function filterGroup(group, btnElement){
     }
     
     document.getElementById('desktopSearch').value = ''; document.getElementById('mobileSearch').value = '';
+    
+    const grid = document.getElementById('channelGrid');
+    grid.classList.remove('fade-in');
+    void grid.offsetWidth; // trigger reflow
+    grid.classList.add('fade-in');
+    
     renderChannels();
     if(window.innerWidth <= 992) toggleMenu();
 }

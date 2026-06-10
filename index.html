@@ -310,10 +310,37 @@ video { width: 100%; height: 100%; object-fit: contain; background: #000; displa
 .social-links { display: flex; justify-content: center; gap: 15px; margin-top: 15px; }
 .social-links a { width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 18px; text-decoration: none; transition: 0.3s; }
 .social-links a.fb { background: #1877F2; } 
-.social-links a.dev { background: #6f42c1; } /* Developer Icon Color */
+.social-links a.dev { background: #6f42c1; } 
 .social-links a:hover { transform: translateY(-3px); filter: brightness(1.2); }
 .footer-text { margin-top: 20px; font-size: 13px; color: var(--text-muted); }
 .footer-text span { color: var(--primary); font-weight: bold; }
+
+/* REAL VISITOR & NETWORK INFO BOX (Soto Kore) */
+.live-network-box {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    align-items: center;
+    justify-content: center;
+}
+.live-network-box span {
+    color: #00ff84;
+    font-weight: 600;
+}
+body.lightmode .live-network-box span {
+    color: #007a41;
+}
+@media (min-width: 768px) {
+    .live-network-box {
+        flex-direction: row;
+        gap: 25px;
+    }
+}
 
 /* LIGHT MODE OVERRIDES */
 body.lightmode {
@@ -419,14 +446,20 @@ body.lightmode .loading-text-minimal { color: #111; text-shadow: none; }
 
         <div class="bottom-section">
             <h3>Connect With Us</h3>
-            <p class="bengali-text" style="font-size: 14px; color: var(--text-muted); margin-top: 5px;">Developer Shoreful Islam</p>
+            <p class="bengali-text" style="font-size: 14px; color: var(--text-muted); margin-top: 5px;">আমার টিভি সম্পর্কে মতামত জানাতে</p>
             <div class="social-links">
-                <!-- Developed Icon (Code Symbol) Used instead of Telegram -->
-                <a href="https://shoreful-islam.vercel.app/" target="_blank" class="dev" title="Developer"><i class="fas fa-code"></i></a>
+                <a href="#" target="_blank" class="dev" title="Developer"><i class="fas fa-code"></i></a>
                 <a href="https://www.facebook.com/share/1GGVpi4anC/" target="_blank" class="fb"><i class="fab fa-facebook-f"></i></a>
             </div>
             <div class="footer-text">
                 © কারিগরি সহযোগিতায় শরিফুল ইসলাম 
+            </div>
+
+            <!-- REAL VISITOR & NETWORK INFO BOX -->
+            <div class="live-network-box bengali-text">
+                <div><i class="fas fa-users"></i> মোট ভিজিটর: <span id="visitorCount">লোডিং...</span></div>
+                <div><i class="fas fa-network-wired"></i> আপনার আইপি: <span id="userIP">লোডিং...</span></div>
+                <div><i class="fas fa-server"></i> আইএসপি (ISP): <span id="userISP">লোডিং...</span></div>
             </div>
         </div>
         
@@ -466,7 +499,37 @@ document.addEventListener("DOMContentLoaded", () => {
     setupPlayerUI();
     setupVideoEvents();
     setupFullScreenListener();
+    loadLiveStats(); // Fetch Real Tracker Info
 });
+
+/* FETCH VISITOR, IP & ISP DATA */
+function loadLiveStats() {
+    // Real Visitor Counter API (Securely tracks global hits for your unique namespace)
+    fetch('https://api.counterapi.dev/v1/shoreful_iptv_premium/visits/increment')
+    .then(res => res.json())
+    .then(data => {
+        if(data && data.value) document.getElementById('visitorCount').innerText = data.value;
+        else document.getElementById('visitorCount').innerText = '১+';
+    })
+    .catch(() => document.getElementById('visitorCount').innerText = 'সরাসরি উপলব্ধ নয়');
+
+    // Real IP & ISP Fetch API
+    fetch('https://ipwho.is/')
+    .then(res => res.json())
+    .then(data => {
+        if(data && data.success) {
+            document.getElementById('userIP').innerText = data.ip || 'Unknown';
+            document.getElementById('userISP').innerText = (data.connection && data.connection.isp) ? data.connection.isp : 'Unknown';
+        } else {
+            document.getElementById('userIP').innerText = 'সনাক্ত করা যায়নি';
+            document.getElementById('userISP').innerText = 'সনাক্ত করা যায়নি';
+        }
+    })
+    .catch(() => {
+        document.getElementById('userIP').innerText = 'অফলাইন';
+        document.getElementById('userISP').innerText = 'অফলাইন';
+    });
+}
 
 /* SHOW SKELETONS */
 function showSkeletons() {

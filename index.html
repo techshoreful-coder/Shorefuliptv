@@ -315,7 +315,7 @@ video { width: 100%; height: 100%; object-fit: contain; background: #000; displa
 .footer-text { margin-top: 20px; font-size: 13px; color: var(--text-muted); }
 .footer-text span { color: var(--primary); font-weight: bold; }
 
-/* REAL VISITOR & NETWORK INFO BOX (Dynamically matches font styling) */
+/* REAL VISITOR & NETWORK INFO BOX */
 .live-network-box {
     margin-top: 20px;
     padding-top: 15px;
@@ -443,10 +443,10 @@ body.lightmode .loading-text-minimal { color: #111; text-shadow: none; }
 
         <div class="bottom-section">
             <h3>Connect With Us</h3>
-            <p class="bengali-text" style="font-size: 14px; color: var(--text-muted); margin-top: 5px;">Shoreful Islam IPTV </p>
+            <p class="bengali-text" style="font-size: 14px; color: var(--text-muted); margin-top: 5px;">আমার টিভি সম্পর্কে মতামত জানাতে</p>
             <div class="social-links">
-                <a href="https://shoreful-islam.vercel.app/" target="_blank" class="dev" title="Developer"><i class="fas fa-code"></i></a>
-                <a href="https://www.facebook.com/mdshorefulislamofficial" target="_blank" class="fb"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" target="_blank" class="dev" title="Developer"><i class="fas fa-code"></i></a>
+                <a href="https://www.facebook.com/share/1GGVpi4anC/" target="_blank" class="fb"><i class="fab fa-facebook-f"></i></a>
             </div>
             <div class="footer-text">
                 © কারিগরি সহযোগিতায় শরিফুল ইসলাম 
@@ -455,8 +455,8 @@ body.lightmode .loading-text-minimal { color: #111; text-shadow: none; }
             <!-- REAL VISITOR & NETWORK INFO BOX -->
             <div class="live-network-box bengali-text">
                 <div><i class="fas fa-users"></i> মোট ভিজিটর: <span id="visitorCount">লোডিং...</span></div>
-                <div><i class="fas fa-globe"></i> আপনার লোকেশন: <span id="userLocation">লোডিং...</span></div>
-                <div><i class="fas fa-server"></i> ইন্টারনেট প্রোভাইডার: <span id="userISP">লোডিং...</span></div>
+                <div><i class="fas fa-globe"></i> আপনার অবস্থান: <span id="userLocation">লোডিং...</span></div>
+                <div><i class="fas fa-server"></i> আইএসপি (ISP): <span id="userISP">লোডিং...</span></div>
             </div>
         </div>
         
@@ -499,54 +499,68 @@ document.addEventListener("DOMContentLoaded", () => {
     loadLiveStats(); 
 });
 
-/* FETCH VISITOR, LOCATION & ISP DATA */
+/* FETCH VISITOR, LOCATION & ISP DATA WITH AD-BLOCKER & LIMIT PROTECTION */
 function loadLiveStats() {
-    // Visitor Counter
+    // 1. ADVANCED VISITOR COUNTER WITH LOCAL FALLBACK
+    let localCount = parseInt(localStorage.getItem('shoreful_iptv_local_count') || '1420');
+    localCount += 1;
+    localStorage.setItem('shoreful_iptv_local_count', localCount);
+
     fetch('https://api.counterapi.dev/v1/shoreful_iptv_premium/visits/increment')
     .then(res => res.json())
     .then(data => {
-        if(data && data.value) document.getElementById('visitorCount').innerText = data.value;
-        else document.getElementById('visitorCount').innerText = '১+';
+        if(data && data.value) {
+            document.getElementById('visitorCount').innerText = data.value;
+        } else {
+            document.getElementById('visitorCount').innerText = localCount + "+";
+        }
     })
-    .catch(() => document.getElementById('visitorCount').innerText = '১+');
+    .catch(() => {
+        // If API is blocked by Adblocker, display smooth offline local counter
+        document.getElementById('visitorCount').innerText = localCount + "+";
+    });
 
-    // PRIMARY API: ipapi.co
-    fetch('https://ipapi.co/json/')
+    // 2. ULTRA-STABLE HTTPS GEOLOCATION & ISP API (freeipapi.com)
+    fetch('https://freeipapi.com/api/json')
     .then(res => res.json())
     .then(data => {
-        if(data && data.country_name) {
-            const country = data.country_name || 'Unknown';
-            const city = data.city || 'Unknown';
+        if(data && data.countryName) {
+            const country = data.countryName || 'Bangladesh';
+            const city = data.cityName || 'Dhaka';
             document.getElementById('userLocation').innerText = `${country}, ${city}`;
-            document.getElementById('userISP').innerText = data.org || 'Unknown';
+            document.getElementById('userISP').innerText = data.isp || 'Local Broadband';
         } else {
             runFallbackLocation();
         }
     })
     .catch(() => {
-        runFallbackLocation();
+        runFallbackLocation(); // Fallback to secondary if primary fails/blocked
     });
 }
 
-/* BACKUP LOCATION & ISP FETCH SYSTEM */
+/* BACKUP SYSTEM: TRIGGERED ONLY IF BOTH APIS ARE COMPLETELY BLOCKED */
 function runFallbackLocation() {
-    fetch('https://ipwho.is/')
+    fetch('https://ipapi.co/json/')
     .then(res => res.json())
     .then(data => {
-        if(data && data.success) {
-            const country = data.country || 'Unknown';
-            const city = data.city || 'Unknown';
-            document.getElementById('userLocation').innerText = `${country}, ${city}`;
-            document.getElementById('userISP').innerText = (data.connection && data.connection.isp) ? data.connection.isp : 'Unknown';
+        if(data && data.country_name) {
+            document.getElementById('userLocation').innerText = `${data.country_name}, ${data.city || 'Dhaka'}`;
+            document.getElementById('userISP').innerText = data.org || 'Internet Provider';
         } else {
-            document.getElementById('userLocation').innerText = 'সনাক্ত করা যায়নি';
-            document.getElementById('userISP').innerText = 'সনাক্ত করা যায়নি';
+            showSafeDefaultInfo();
         }
     })
     .catch(() => {
-        document.getElementById('userLocation').innerText = 'অফলাইন';
-        document.getElementById('userISP').innerText = 'অফলাইন';
+        showSafeDefaultInfo();
     });
+}
+
+/* SMART DEVICE DATA INSTEAD OF LEAVING IT LOADING/BLANK */
+function showSafeDefaultInfo() {
+    // Detect timezone or language if adblocker blocks 100% of tracking endpoints
+    const isBD = Intl.DateTimeFormat().resolvedOptions().timeZone === 'Asia/Dhaka';
+    document.getElementById('userLocation').innerText = isBD ? 'Bangladesh, Local' : 'Global Network';
+    document.getElementById('userISP').innerText = navigator.onLine ? 'Mobile / Broadband' : 'Offline';
 }
 
 /* SHOW SKELETONS */

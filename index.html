@@ -310,34 +310,10 @@ video { width: 100%; height: 100%; object-fit: contain; background: #000; displa
 .social-links { display: flex; justify-content: center; gap: 15px; margin-top: 15px; }
 .social-links a { width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 18px; text-decoration: none; transition: 0.3s; }
 .social-links a.fb { background: #1877F2; } 
-.social-links a.dev { background: #6f42c1; } 
+.social-links a.dev { background: #6f42c1; } /* Developer Icon Color */
 .social-links a:hover { transform: translateY(-3px); filter: brightness(1.2); }
 .footer-text { margin-top: 20px; font-size: 13px; color: var(--text-muted); }
 .footer-text span { color: var(--primary); font-weight: bold; }
-
-/* REAL VISITOR & NETWORK INFO BOX */
-.live-network-box {
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    font-size: 13px;
-    color: var(--text-muted);
-    align-items: center;
-    justify-content: center;
-}
-.live-network-box span {
-    color: var(--text-main);
-    font-weight: 600;
-}
-@media (min-width: 768px) {
-    .live-network-box {
-        flex-direction: row;
-        gap: 30px;
-    }
-}
 
 /* LIGHT MODE OVERRIDES */
 body.lightmode {
@@ -443,20 +419,14 @@ body.lightmode .loading-text-minimal { color: #111; text-shadow: none; }
 
         <div class="bottom-section">
             <h3>Connect With Us</h3>
-            <p class="bengali-text" style="font-size: 14px; color: var(--text-muted); margin-top: 5px;">আমার টিভি সম্পর্কে মতামত জানাতে</p>
+            <p class="bengali-text" style="font-size: 14px; color: var(--text-muted); margin-top: 5px;">Developer Shoreful Islam</p>
             <div class="social-links">
-                <a href="#" target="_blank" class="dev" title="Developer"><i class="fas fa-code"></i></a>
+                <!-- Developed Icon (Code Symbol) Used instead of Telegram -->
+                <a href="https://shoreful-islam.vercel.app/" target="_blank" class="dev" title="Developer"><i class="fas fa-code"></i></a>
                 <a href="https://www.facebook.com/share/1GGVpi4anC/" target="_blank" class="fb"><i class="fab fa-facebook-f"></i></a>
             </div>
             <div class="footer-text">
                 © কারিগরি সহযোগিতায় শরিফুল ইসলাম 
-            </div>
-
-            <!-- REAL VISITOR & NETWORK INFO BOX -->
-            <div class="live-network-box bengali-text">
-                <div><i class="fas fa-users"></i> মোট ভিজিটর: <span id="visitorCount">লোডিং...</span></div>
-                <div><i class="fas fa-globe"></i> আপনার অবস্থান: <span id="userLocation">লোডিং...</span></div>
-                <div><i class="fas fa-server"></i> আইএসপি (ISP): <span id="userISP">লোডিং...</span></div>
             </div>
         </div>
         
@@ -496,72 +466,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setupPlayerUI();
     setupVideoEvents();
     setupFullScreenListener();
-    loadLiveStats(); 
 });
-
-/* FETCH VISITOR, LOCATION & ISP DATA WITH AD-BLOCKER & LIMIT PROTECTION */
-function loadLiveStats() {
-    // 1. ADVANCED VISITOR COUNTER WITH LOCAL FALLBACK
-    let localCount = parseInt(localStorage.getItem('shoreful_iptv_local_count') || '1420');
-    localCount += 1;
-    localStorage.setItem('shoreful_iptv_local_count', localCount);
-
-    fetch('https://api.counterapi.dev/v1/shoreful_iptv_premium/visits/increment')
-    .then(res => res.json())
-    .then(data => {
-        if(data && data.value) {
-            document.getElementById('visitorCount').innerText = data.value;
-        } else {
-            document.getElementById('visitorCount').innerText = localCount + "+";
-        }
-    })
-    .catch(() => {
-        // If API is blocked by Adblocker, display smooth offline local counter
-        document.getElementById('visitorCount').innerText = localCount + "+";
-    });
-
-    // 2. ULTRA-STABLE HTTPS GEOLOCATION & ISP API (freeipapi.com)
-    fetch('https://freeipapi.com/api/json')
-    .then(res => res.json())
-    .then(data => {
-        if(data && data.countryName) {
-            const country = data.countryName || 'Bangladesh';
-            const city = data.cityName || 'Dhaka';
-            document.getElementById('userLocation').innerText = `${country}, ${city}`;
-            document.getElementById('userISP').innerText = data.isp || 'Local Broadband';
-        } else {
-            runFallbackLocation();
-        }
-    })
-    .catch(() => {
-        runFallbackLocation(); // Fallback to secondary if primary fails/blocked
-    });
-}
-
-/* BACKUP SYSTEM: TRIGGERED ONLY IF BOTH APIS ARE COMPLETELY BLOCKED */
-function runFallbackLocation() {
-    fetch('https://ipapi.co/json/')
-    .then(res => res.json())
-    .then(data => {
-        if(data && data.country_name) {
-            document.getElementById('userLocation').innerText = `${data.country_name}, ${data.city || 'Dhaka'}`;
-            document.getElementById('userISP').innerText = data.org || 'Internet Provider';
-        } else {
-            showSafeDefaultInfo();
-        }
-    })
-    .catch(() => {
-        showSafeDefaultInfo();
-    });
-}
-
-/* SMART DEVICE DATA INSTEAD OF LEAVING IT LOADING/BLANK */
-function showSafeDefaultInfo() {
-    // Detect timezone or language if adblocker blocks 100% of tracking endpoints
-    const isBD = Intl.DateTimeFormat().resolvedOptions().timeZone === 'Asia/Dhaka';
-    document.getElementById('userLocation').innerText = isBD ? 'Bangladesh, Local' : 'Global Network';
-    document.getElementById('userISP').innerText = navigator.onLine ? 'Mobile / Broadband' : 'Offline';
-}
 
 /* SHOW SKELETONS */
 function showSkeletons() {
@@ -700,7 +605,6 @@ function filterGroup(group, btnElement){
     if(window.innerWidth <= 992) toggleMenu();
 }
 
-/* SEARCH */
 function searchChannels(query){
     query = query.toLowerCase();
     if(document.getElementById('desktopSearch').value !== query) document.getElementById('desktopSearch').value = query;
